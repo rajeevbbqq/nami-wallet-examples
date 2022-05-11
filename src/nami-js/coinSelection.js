@@ -252,10 +252,16 @@ const CoinSelection = {
       createSubSet(utxoSelection, output); // Narrow down for NatToken UTxO
 
       try {
+        console.log(limit);
+        console.log(`UTxO selection: ${utxoSelection.selection.length}`);
+        let utxoLimit = limit - utxoSelection.selection.length;
+        console.log(`UTxO limit: ${utxoLimit}`);
+        // utxoLimit = Loader.Cardano.BigNum.from_str(utxoLimit.toString());
+        // console.log(`UTxO limit:`, utxoLimit);
         utxoSelection = randomSelect(
           cloneUTxOSelection(utxoSelection), // Deep copy in case of fallback needed
           output,
-          limit - utxoSelection.selection.length,
+          utxoLimit,
           _minUTxOValue
         );
       } catch (e) {
@@ -455,7 +461,7 @@ function improve(utxoSelection, outputAmount, limit, range) {
 
   if (
     abs(getAmountValue(range.ideal) - getAmountValue(newAmount)) <
-      abs(getAmountValue(range.ideal) - getAmountValue(outputAmount)) &&
+    abs(getAmountValue(range.ideal) - getAmountValue(outputAmount)) &&
     newAmount.compare(range.maximum) <= 0
   ) {
     utxoSelection.selection.push(utxo);
@@ -629,7 +635,7 @@ function isQtyFulfilled(
   if (minUTxOValue && BigInt(outputAmount.coin().to_str()) > 0) {
     let minAmount = Loader.Cardano.Value.new(
       Loader.Cardano.min_ada_required(
-        cumulatedAmount,
+        cumulatedAmount, false,
         Loader.Cardano.BigNum.from_str(minUTxOValue.toString())
       )
     );
@@ -650,7 +656,7 @@ function isQtyFulfilled(
     if (nbFreeUTxO > 0) {
       let maxFee =
         BigInt(protocolParameters.minFeeA) *
-          BigInt(protocolParameters.maxTxSize) +
+        BigInt(protocolParameters.maxTxSize) +
         BigInt(protocolParameters.minFeeB);
 
       maxFee = Loader.Cardano.Value.new(
